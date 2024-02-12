@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"options": {
+		"env": {
+			"nvcc_path": "/usr/local/cuda-12.3/bin"
+		}
+	},
+	"tasks": [
+		{
+			"label": "build cuda program",
+			"type": "shell",
+			"command": "$nvcc_path/nvcc -g -G hello-world.cu -o hello-world",
+			"problemMatcher": [
+				"$nvcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}

@@ -1,4 +1,9 @@
 *.o
 a.out
-.vscode
+.vscode/*
 notes.txt
+hello-world
+
+# Exceptions
+!.vscode/launch.json
+!.vscode/tasks.json
