@@ -1,6 +1,6 @@
 # Summary
 
-This is a simple project made with the sole purpose of studying development process in [CUDA](https://developer.nvidia.com/cuda-toolkit).
+This is a simple project made with the sole purpose of studying development process in [CUDA](https://developer.nvidia.com/cuda-toolkit). This project offers a console application that takes two matrices of floating-point numbers and calculates their multiplication.
 
 ## Requirements
 
@@ -10,6 +10,12 @@ This is a simple project made with the sole purpose of studying development proc
 ## Running:
 
 ```shell
-nvcc -g -G hello-world.cu -o hello-world # compilation, -g -G are debug tags
-./hello-world
+nvcc matrix_mult.cu
+./a.out
+```
+
+Similarly, to execute certain test cases, this can be accomplished using the following command.
+
+```shell
+./a.out < test/inputs/input_4.txt
 ```
