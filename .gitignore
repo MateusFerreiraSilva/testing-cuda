@@ -4,9 +4,6 @@ a.out
 notes.txt
 hello-world
 
-input*
-output*
-
 # Exceptions
 !.vscode/launch.json
 !.vscode/tasks.json

@@ -9,7 +9,7 @@
             "type": "cuda-gdb",
             "request": "launch",
             "program": "${workspaceFolder}/a.out",
-            "args": "< ${workspaceFolder}/input_2",
+            "args": "< ${workspaceFolder}/test/inputs/input_4.txt",
         },
         {
             "name": "CUDA C++: Attach",
