@@ -3,29 +3,32 @@
 #include <thrust/device_vector.h>
 
 __global__ void matrix_mult(
-    float *A, float *B,
-    float *C, const int N)
+    float *A, dim3 A_dim,
+    float *B, dim3 B_dim,
+    float *C, dim3 C_dim)
 {
     const int col_offset = blockIdx.x * blockDim.x;
     const int col = threadIdx.x + col_offset;
     const int row_offset = blockIdx.y * blockDim.y;
     const int row = threadIdx.y + row_offset;
 
-    if (row < N && col < N)
+    if (row <= A_dim.y && col <= B_dim.x)
     {
         float sum = 0.0f;
-        for (int i = 0; i < N; i++)
+        for (int i = 0; i < A_dim.y; i++) // A_dim.y == B_dim.x
         {
-            sum += A[row * N + i] * B[i * N + col];
+            sum += A[row * A_dim.y + i] * B[i * B_dim.y + col];
         }
 
-        C[row * N + col] = sum;
+        C[row * C_dim.y + col] = sum;
     }
 }
 
 int main()
 {
     const int BLOCK_SIZE = 32;
+    const int GRID_SIZE = BLOCK_SIZE / 2;
+
     dim3 A_dim, B_dim;
 
     printf("Input the dimensions (x, y) of matrix A: ");
@@ -40,14 +43,13 @@ int main()
         return 0;
     }
 
-    const int N = A_dim.y; // or B_dim.x
     const dim3 C_dim(A_dim.x, B_dim.y);
 
     thrust::host_vector<float> h_A(A_dim.x * A_dim.y); // flattened matrix A
     printf("Input matrix A:\n");
     for (int i = 0; i < A_dim.x; i++) {
         for (int j = 0; j < A_dim.y; j++) {
-            scanf("%f", &h_A[i * A_dim.x + j]);
+            scanf("%f", &h_A[i * A_dim.y + j]);
         }
     }
 
@@ -55,7 +57,7 @@ int main()
     printf("Input matrix B:\n");
     for (int i = 0; i < B_dim.x; i++) {
         for (int j = 0; j < B_dim.y; j++) {
-            scanf("%f", &h_B[i * B_dim.x + j]);
+            scanf("%f", &h_B[i * B_dim.y + j]);
         }
     }
 
@@ -64,11 +66,12 @@ int main()
     thrust::device_vector<float> d_C(C_dim.x  * C_dim.y);
 
     dim3 block(BLOCK_SIZE, BLOCK_SIZE);
-    dim3 grid(1);
+    dim3 grid(GRID_SIZE, GRID_SIZE);
 
     matrix_mult<<<grid, block>>>(
-        thrust::raw_pointer_cast(d_A.data()), thrust::raw_pointer_cast(d_B.data()),
-        thrust::raw_pointer_cast(d_C.data()), N);
+        thrust::raw_pointer_cast(d_A.data()), A_dim,
+        thrust::raw_pointer_cast(d_B.data()), B_dim,
+        thrust::raw_pointer_cast(d_C.data()), C_dim);
     cudaDeviceSynchronize();
 
     thrust::host_vector<float> h_C = d_C;
