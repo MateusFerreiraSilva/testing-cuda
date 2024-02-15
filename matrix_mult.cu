@@ -3,16 +3,16 @@
 #include <thrust/device_vector.h>
 
 __global__ void matrix_mult(
-    float *A, dim3 A_dim,
-    float *B, dim3 B_dim,
-    float *C, dim3 C_dim)
+    const float *A, const dim3 A_dim,
+    const float *B, const dim3 B_dim,
+    float *C, const dim3 C_dim)
 {
     const int col_offset = blockIdx.x * blockDim.x;
     const int col = threadIdx.x + col_offset;
     const int row_offset = blockIdx.y * blockDim.y;
     const int row = threadIdx.y + row_offset;
 
-    if (row <= A_dim.y && col <= B_dim.x)
+    if (row < A_dim.x && col < B_dim.y)
     {
         float sum = 0.0f;
         for (int i = 0; i < A_dim.y; i++) // A_dim.y == B_dim.x
@@ -61,12 +61,12 @@ int main()
         }
     }
 
-    thrust::device_vector<float> d_A = h_A;
-    thrust::device_vector<float> d_B = h_B;
+    const thrust::device_vector<float> d_A = h_A;
+    const thrust::device_vector<float> d_B = h_B;
     thrust::device_vector<float> d_C(C_dim.x  * C_dim.y);
 
-    dim3 block(BLOCK_SIZE, BLOCK_SIZE);
-    dim3 grid(GRID_SIZE, GRID_SIZE);
+    const dim3 block(BLOCK_SIZE, BLOCK_SIZE);
+    const dim3 grid(GRID_SIZE, GRID_SIZE);
 
     matrix_mult<<<grid, block>>>(
         thrust::raw_pointer_cast(d_A.data()), A_dim,
@@ -74,7 +74,7 @@ int main()
         thrust::raw_pointer_cast(d_C.data()), C_dim);
     cudaDeviceSynchronize();
 
-    thrust::host_vector<float> h_C = d_C;
+    const thrust::host_vector<float> h_C = d_C;
 
     printf("\n");
     for (int i = 0; i < h_C.size(); i++)
