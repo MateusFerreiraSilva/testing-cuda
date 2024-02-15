@@ -23,36 +23,45 @@ __global__ void matrix_mult(
     }
 }
 
-// TO DO check the existence condition of the matrix
 int main()
 {
     const int BLOCK_SIZE = 32;
+    dim3 A_dim, B_dim;
 
-    const int N = 2;
-    const int SIZE = N * N;
+    printf("Input the dimensions (x, y) of matrix A: ");
+    scanf("%d%d", &A_dim.x, &A_dim.y);
 
-    // host data
+    printf("Input the dimensions (x, y) of matrix B: ");
+    scanf("%d%d", &B_dim.x, &B_dim.y);
 
-    /*
-     * flattened matrix:
-     * [0.5 1]
-     * [0.2 0.8]
-     */
+    if (A_dim.y != B_dim.x) { // matrix existence condition
+        printf("Invalid dimensions. The number of columns in Matrix A must be equal to the number of rows in Matrix B.\n");
 
-    thrust::host_vector<float> h_A = {0.5, 1, 0.2, 0.8}; // allocated on stack
+        return 0;
+    }
 
-    /*
-     * flattened matrix:
-     * [0.92 0.4]
-     * [1 0.15]
-     */
-    thrust::host_vector<float> h_B = {0.92, 0.4, 1, 0.15}; // allocated on stack
-    thrust::host_vector<float> h_C(SIZE);
+    const int N = A_dim.y; // or B_dim.x
+    const dim3 C_dim(A_dim.x, B_dim.y);
 
-    // device data
+    thrust::host_vector<float> h_A(A_dim.x * A_dim.y); // flattened matrix A
+    printf("Input matrix A:\n");
+    for (int i = 0; i < A_dim.x; i++) {
+        for (int j = 0; j < A_dim.y; j++) {
+            scanf("%f", &h_A[i * A_dim.x + j]);
+        }
+    }
+
+    thrust::host_vector<float> h_B(B_dim.x * B_dim.y); // flattened matrix B
+    printf("Input matrix B:\n");
+    for (int i = 0; i < B_dim.x; i++) {
+        for (int j = 0; j < B_dim.y; j++) {
+            scanf("%f", &h_B[i * B_dim.x + j]);
+        }
+    }
+
     thrust::device_vector<float> d_A = h_A;
     thrust::device_vector<float> d_B = h_B;
-    thrust::device_vector<float> d_C(SIZE);
+    thrust::device_vector<float> d_C(C_dim.x  * C_dim.y);
 
     dim3 block(BLOCK_SIZE, BLOCK_SIZE);
     dim3 grid(1);
@@ -62,12 +71,13 @@ int main()
         thrust::raw_pointer_cast(d_C.data()), N);
     cudaDeviceSynchronize();
 
-    h_C = d_C;
+    thrust::host_vector<float> h_C = d_C;
 
-    for (int i = 0; i < SIZE; i++)
+    printf("\n");
+    for (int i = 0; i < h_C.size(); i++)
     {
         printf("\t%2.2f", h_C[i]);
-        if ((i + 1) % N == 0)
+        if ((i + 1) % C_dim.y == 0) // this means new row
         {
             printf("\n");
         }
